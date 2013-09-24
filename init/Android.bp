@@ -86,6 +86,14 @@ init_device_sources = [
     "ueventd_parser.cpp",
 ]
 
+cc_library_static {
+    name: "vendor_init",
+    recovery_available: true,
+    srcs: [
+        "vendor_init.cpp",
+    ],
+}
+
 soong_config_module_type {
     name: "libinit_cc_defaults",
     module_type: "cc_defaults",
@@ -215,6 +223,7 @@ cc_defaults {
     defaults: [
         "init_defaults",
         "selinux_policy_version",
+        "vendor_init_defaults",
     ],
     srcs: init_common_sources + init_device_sources,
     export_include_dirs: ["."],
