@@ -48,6 +48,8 @@
 
 #define POWER_SUPPLY_SUBSYSTEM "power_supply"
 #define POWER_SUPPLY_SYSFS_PATH "/sys/class/" POWER_SUPPLY_SUBSYSTEM
+#define SYSFS_BATTERY_CURRENT "/sys/class/power_supply/battery/current_now"
+#define SYSFS_BATTERY_VOLTAGE "/sys/class/power_supply/battery/voltage_now"
 #define DEV_GLOB "/sys/devices/platform/*gcdd/system_dev_stat"
 #define CDD_SYSTEM_DEVICE_TEMP 8
 #define FAKE_BATTERY_CAPACITY 42
@@ -604,15 +606,13 @@ void BatteryMonitor::updateValues(void) {
                 default:
                     KLOG_WARNING(LOG_TAG, "%s: Unknown power supply type\n", chargerName.c_str());
             }
-            path.clear();
-            path.appendFormat("%s/%s/current_max", POWER_SUPPLY_SYSFS_PATH, chargerName.c_str());
-            int ChargingCurrent = tryGetIntField(path).value_or(0);
+            int ChargingCurrent =
+                    abs(tryGetIntField(String8(SYSFS_BATTERY_CURRENT)).value_or(0));
 
             int ChargingVoltage;
-            path.clear();
-            path.appendFormat("%s/%s/voltage_max", POWER_SUPPLY_SYSFS_PATH, chargerName.c_str());
-            if (auto vmax = tryGetIntField(path); vmax.ok() || vmax.error().code() != ENOENT) {
-                ChargingVoltage = vmax.value_or(0);
+            if (auto vnow = tryGetIntField(String8(SYSFS_BATTERY_VOLTAGE));
+                vnow.ok() || vnow.error().code() != ENOENT) {
+                ChargingVoltage = vnow.value_or(0);
             } else {
                 path.clear();
                 path.appendFormat("%s/%s/voltage_max_design", POWER_SUPPLY_SYSFS_PATH,
