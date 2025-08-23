@@ -153,6 +153,11 @@ cc_binary {
         default: [],
     }),
 
+    cppflags: select(soong_config_variable("fastbootd", "bypass_lock_state"), {
+        true: ["-DFASTBOOT_BYPASS_LOCK_STATE"],
+        default: [],
+    }),
+
     srcs: [
         "device/commands.cpp",
         "device/fastboot_device.cpp",

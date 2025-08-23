@@ -195,7 +195,11 @@ std::vector<std::string> ListPartitions(FastbootDevice* device) {
 }
 
 bool GetDeviceLockStatus() {
+#ifdef FASTBOOT_BYPASS_LOCK_STATE
+    return false;
+#else
     return android::base::GetProperty("ro.boot.verifiedbootstate", "") == "green";
+#endif
 }
 
 bool UpdateAllPartitionMetadata(FastbootDevice* device, const std::string& super_name,
