@@ -1145,6 +1145,11 @@ on post-fs-data
     # Set SELinux security contexts on upgrade or policy update.
     restorecon --recursive --skip-ce /data
 
+    # Re-apply SELinux labels after broad restorecon for dirty flash compatibility
+    restorecon_recursive /data/adb/tricky_store
+    restorecon_recursive /data/adb/playintegrityfix
+    restorecon_recursive /data/adb/gameprops
+
     # Define and export *CLASSPATH variables
     # Must start before 'odsign', as odsign depends on *CLASSPATH variables
     exec_start derive_classpath
@@ -1220,7 +1225,11 @@ on boot
     chmod 0775 /data/adb/tricky_store
     chmod 0775 /data/adb/playintegrityfix
     chmod 0775 /data/adb/gameprops
-    
+
+    restorecon_recursive /data/adb/tricky_store
+    restorecon_recursive /data/adb/playintegrityfix
+    restorecon_recursive /data/adb/gameprops
+
     # basic network init
     ifup lo
     hostname localhost
