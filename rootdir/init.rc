@@ -880,37 +880,9 @@ on post-fs-data
     # directory used for connectivity blob store.
     mkdir /data/misc/connectivityblobdb 0770 system system
 
-    # Custom ROM Hide allowlist
-    mkdir /data/adb 0711 root root
-    chmod 0711 /data/adb
-    write /data/adb/.custom_rom_hide_allowlist ""
-    chown system system /data/adb/.custom_rom_hide_allowlist
-    chmod 0644 /data/adb/.custom_rom_hide_allowlist
-    restorecon /data/adb/.custom_rom_hide_allowlist
-
     # Setup SurfaceFlinger shader caching
     mkdir /data/misc/surfaceflinger 0700 system system
     setprop service.sf.cache_dir_available 1
-
-    # TrickyStore
-    mkdir /data/adb 0711 root root
-    chmod 0711 /data/adb
-    mkdir /data/adb/tricky_store 0775 system system
-    chmod 0775 /data/adb/tricky_store
-    chown system system /data/adb/tricky_store
-    restorecon_recursive /data/adb/tricky_store
-
-    # PlayIntegrityFix
-    mkdir /data/adb/playintegrityfix 0775 system system
-    chmod 0775 /data/adb/playintegrityfix
-    chown system system /data/adb/playintegrityfix
-    restorecon_recursive /data/adb/playintegrityfix
-
-    # GameProps
-    mkdir /data/adb/gameprops 0775 system system
-    chmod 0775 /data/adb/gameprops
-    chown system system /data/adb/gameprops
-    restorecon_recursive /data/adb/gameprops
 
     # Directory for VirtualizationService temporary image files.
     # Delete any stale files owned by the old virtualizationservice uid (b/230056726).
@@ -1145,10 +1117,32 @@ on post-fs-data
     # Set SELinux security contexts on upgrade or policy update.
     restorecon --recursive --skip-ce /data
 
-    # Re-apply SELinux labels after broad restorecon for dirty flash compatibility
-    restorecon_recursive /data/adb/tricky_store
-    restorecon_recursive /data/adb/playintegrityfix
-    restorecon_recursive /data/adb/gameprops
+    # Make /data/adb only root access, if exists
+    chmod 0700 /data/adb
+
+    # Custom ROM Hide allowlist
+    write /data/system/.custom_rom_hide_allowlist ""
+    chown system system /data/system/.custom_rom_hide_allowlist
+    chmod 0644 /data/system/.custom_rom_hide_allowlist
+    restorecon /data/system/.custom_rom_hide_allowlist
+
+    # TrickyStore
+    mkdir /data/system/tricky_store 0775 system system
+    chmod 0775 /data/system/tricky_store
+    chown system system /data/system/tricky_store
+    restorecon_recursive /data/system/tricky_store
+
+    # PlayIntegrityFix
+    mkdir /data/system/playintegrityfix 0775 system system
+    chmod 0775 /data/system/playintegrityfix
+    chown system system /data/system/playintegrityfix
+    restorecon_recursive /data/system/playintegrityfix
+
+    # GameProps
+    mkdir /data/system/gameprops 0775 system system
+    chmod 0775 /data/system/gameprops
+    chown system system /data/system/gameprops
+    restorecon_recursive /data/system/gameprops
 
     # Define and export *CLASSPATH variables
     # Must start before 'odsign', as odsign depends on *CLASSPATH variables
@@ -1216,20 +1210,6 @@ on boot && property:suspend.disable_sync_on_suspend=true
     write /sys/power/sync_on_suspend 0
 
 on boot
-    # Custom ROM Hide allowlist permissions
-    chmod 0711 /data/adb
-    chmod 0644 /data/adb/.custom_rom_hide_allowlist
-
-    # TrickyStore - fix permissions on /data/adb for keybox access
-    chmod 0711 /data/adb
-    chmod 0775 /data/adb/tricky_store
-    chmod 0775 /data/adb/playintegrityfix
-    chmod 0775 /data/adb/gameprops
-
-    restorecon_recursive /data/adb/tricky_store
-    restorecon_recursive /data/adb/playintegrityfix
-    restorecon_recursive /data/adb/gameprops
-
     # basic network init
     ifup lo
     hostname localhost
