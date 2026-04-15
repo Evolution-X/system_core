@@ -111,7 +111,11 @@ bool IsDeviceUnlocked() {
     std::string verified_boot_state;
 
     if (fs_mgr_get_boot_config("verifiedbootstate", &verified_boot_state)) {
-        return (verified_boot_state == "orange" || verified_boot_state == "green");
+#ifdef FASTBOOT_BYPASS_LOCK_STATE
+    return (verified_boot_state == "orange" || verified_boot_state == "green");
+#else
+    return verified_boot_state == "orange";
+#endif
     }
     return false;
 }
