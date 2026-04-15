@@ -58,6 +58,10 @@ cc_library_static {
             enabled: false,
         },
     },
+    cppflags: select(soong_config_variable("fastbootd", "bypass_lock_state"), {
+        true: ["-DFASTBOOT_BYPASS_LOCK_STATE"],
+        default: [],
+    }),
 }
 
 cc_defaults {
