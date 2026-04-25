@@ -1111,33 +1111,6 @@ on post-fs-data
     # Set SELinux security contexts on upgrade or policy update.
     restorecon --recursive --skip-ce /data
 
-    # Make /data/adb only root access, if exists
-    chmod 0700 /data/adb
-
-    # Custom ROM Hide allowlist
-    write /data/system/.custom_rom_hide_allowlist ""
-    chown system system /data/system/.custom_rom_hide_allowlist
-    chmod 0644 /data/system/.custom_rom_hide_allowlist
-    restorecon /data/system/.custom_rom_hide_allowlist
-
-    # TrickyStore
-    mkdir /data/system/tricky_store 0775 system system
-    chmod 0775 /data/system/tricky_store
-    chown system system /data/system/tricky_store
-    restorecon_recursive /data/system/tricky_store
-
-    # PlayIntegrityFix
-    mkdir /data/system/playintegrityfix 0775 system system
-    chmod 0775 /data/system/playintegrityfix
-    chown system system /data/system/playintegrityfix
-    restorecon_recursive /data/system/playintegrityfix
-
-    # GameProps
-    mkdir /data/system/gameprops 0775 system system
-    chmod 0775 /data/system/gameprops
-    chown system system /data/system/gameprops
-    restorecon_recursive /data/system/gameprops
-
     # Define and export *CLASSPATH variables
     # Must start before 'odsign', as odsign depends on *CLASSPATH variables
     exec_start derive_classpath
@@ -1176,6 +1149,13 @@ on post-fs-data
 
     # Update dm-verity state and set partition.*.verified properties.
     verity_update_state
+
+on early-init && property:persist.sys.evox.spoof.migrated=
+    setprop persist.sys.evox.spoof.migrated 0
+
+on post-fs-data && property:persist.sys.evox.spoof.migrated=0
+    exec - root root -- /system/bin/rm -rf /data/adb/tricky_store /data/adb/playintegrityfix /data/adb/gameprops /data/adb/.custom_rom_hide_allowlist
+    setprop persist.sys.evox.spoof.migrated 1
 
 on property:vold.checkpoint_committed=1
     trigger post-fs-data-checkpointed
