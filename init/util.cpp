@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/magic.h>
 #include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -27,6 +28,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/vfs.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
@@ -205,8 +207,24 @@ static int OpenFile(const std::string& path, int flags, mode_t mode) {
 }
 
 Result<void> WriteFile(const std::string& path, const std::string& content) {
-    android::base::unique_fd fd(TEMP_FAILURE_RETRY(
-        OpenFile(path, O_WRONLY | O_CREAT | O_NOFOLLOW | O_TRUNC | O_CLOEXEC, 0600)));
+    constexpr int flags = O_WRONLY | O_NOFOLLOW | O_TRUNC | O_CLOEXEC;
+    android::base::unique_fd fd(TEMP_FAILURE_RETRY(OpenFile(path, flags, 0600)));
+    if (fd == -1 && errno == ENOENT) {
+        // Kernel attributes cannot be created with open(O_CREAT). On older kernels,
+        // doing so converts a missing optional attribute into a misleading EACCES.
+        struct statfs fs;
+        constexpr long kConfigfsMagic = 0x62656570;
+        bool kernel_attribute =
+                statfs(android::base::Dirname(path).c_str(), &fs) == 0 &&
+                (fs.f_type == SYSFS_MAGIC || fs.f_type == PROC_SUPER_MAGIC ||
+                 fs.f_type == CGROUP_SUPER_MAGIC || fs.f_type == CGROUP2_SUPER_MAGIC ||
+                 fs.f_type == kConfigfsMagic);
+        if (kernel_attribute) {
+            errno = ENOENT;
+            return ErrnoError() << "open() failed";
+        }
+        fd.reset(TEMP_FAILURE_RETRY(OpenFile(path, flags | O_CREAT, 0600)));
+    }
     if (fd == -1) {
         return ErrnoError() << "open() failed";
     }

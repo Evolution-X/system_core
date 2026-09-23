@@ -95,6 +95,13 @@ TEST(util, WriteFileBinary) {
     EXPECT_EQ(10u, read_back_contents->size());
 }
 
+TEST(util, WriteFileMissingKernelAttribute) {
+    // Do not turn ENOENT into EACCES by trying to create a procfs attribute.
+    auto result = WriteFile("/proc/sys/kernel/init-test-does-not-exist", "1");
+    ASSERT_FALSE(result.ok());
+    EXPECT_EQ(ENOENT, result.error().code());
+}
+
 TEST(util, WriteFileNotExist) {
     std::string s("hello");
     TemporaryDir test_dir;
