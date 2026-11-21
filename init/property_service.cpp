@@ -1249,6 +1249,9 @@ static void SetSafetyNetProps() {
         {"ro.is_ever_orange", "0"},
         {"ro.secureboot.devicelock", "1"},
         {"ro.secureboot.lockstate", "locked"},
+        {"ro.boot.selinux", "enforcing"},
+        {"ro.build.selinux", "1"},
+        {"ro.build.selinux.enforce", "1"},
 #ifdef SPOOF_FIRST_API_LEVEL_32
         {"ro.product.first_api_level", "32"}
 #endif
